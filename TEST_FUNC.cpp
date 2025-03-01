@@ -19,12 +19,12 @@ extern "C" __declspec(dllexport)double HillFunc(double x, time_t now)
 }
 extern "C" __declspec(dllexport)double ShekelFunc(double x, time_t now)
 {
-	const unsigned short SH_COUNT = 11;
+	const unsigned short SH_COUNT = 10;
 	double a = 0, b = 1, res = 0;
 	srand((unsigned short)now);
 	std::default_random_engine generator(rand());
 	std::uniform_real_distribution<> distribution(a, b);
-	unsigned short i = 1;
+	unsigned short i = 0;
 	while (i < SH_COUNT)
 	{
 		res -= 1 / ((5 + 20 * distribution(generator)) * pow(x - 10 * distribution(generator), 2) + 1 + 0.4 * distribution(generator));
