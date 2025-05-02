@@ -25,177 +25,468 @@ namespace TESTAGP {
 			}
 			return 0.5 * (x1 + x2) - Sign(y2 - y1) * 0.5 * _r * (y2 - y1) * (y2 - y1) / (_m * _m);
 		}
-		cliext::deque<double> Base_LNA_1_2_Mer_AGP(time_t now, bool mode, unsigned short N, double b, PeanoCurve_2D^ Curve, PeanoCurve_2D^ Curve_Minus_PI_Na_Dva, unsigned short r, double epsilon, unsigned short global_local_iterations, double a, double c, double d)
-		{
-			std::pair<double, double> start, end, start_Minus_PI_Na_Dva, end_Minus_PI_Na_Dva, x_Rmax, y_Rmax, x_Rmax_Minus_PI_Na_Dva, y_Rmax_Minus_PI_Na_Dva, pred_i_sled_shag, pred_i_sled_shag_Minus_PI_Na_Dva, promejutochnaya_tochka, promejutochnaya_tochka_Minus_PI_Na_Dva; Interval nachalny_otrezok, nachalny_otrezok_Minus_PI_Na_Dva, promejutochny_otrezok, promejutochny_otrezok_Minus_PI_Na_Dva, curr, curr1, curr_Minus_PI_Na_Dva, curr1_Minus_PI_Na_Dva; double Mmax, Mmax_Minus_PI_Na_Dva, m, m_Minus_PI_Na_Dva, dmax, dmax_Minus_PI_Na_Dva, eta_shtrih; Priority_queue R, R_Minus_PI_Na_Dva, R1, R1_Minus_PI_Na_Dva; pred_i_sled_shag = std::pair<double, double>(a, b); cliext::deque<double> Extr; unsigned short schetchick = 0;
-			if (N == 1)
-			{
-				HINSTANCE load_function = LoadLibrary(L"TEST_FUNC.dll"); typedef double (*sh) (double, time_t); sh ShekelFunc = (sh)GetProcAddress(load_function, "ShekelFunc"); start = std::pair<double, double>(a, ShekelFunc(a, now)), end = std::pair<double, double>(b, ShekelFunc(b, now)), nachalny_otrezok = Interval(start, end, N), Mmax = nachalny_otrezok.GetM(), m = r * Mmax, x_Rmax = std::pair<double, double>(start.first, end.first), y_Rmax = std::pair<double, double>(start.second, end.second), R.push(nachalny_otrezok);
-				while (abs(pred_i_sled_shag.second - pred_i_sled_shag.first) > epsilon)
-				{
-					pred_i_sled_shag.first = pred_i_sled_shag.second, promejutochnaya_tochka.first = pred_i_sled_shag.second = Shag(m, x_Rmax.first, x_Rmax.second, y_Rmax.first, y_Rmax.second, N, r), promejutochnaya_tochka.second = ShekelFunc(pred_i_sled_shag.second, now); double min = promejutochnaya_tochka.second;
-					if (Extr.empty() == false)
-					{
-						if (min > Extr.back())
-						{
-							min = Extr.back();
-						}
-					}
-					Extr.push_back(min);
-					if (schetchick == 3000)
-					{
-						return Extr;
-					}
-					promejutochny_otrezok = R.top(), curr = Interval(promejutochny_otrezok.GetStart(), promejutochnaya_tochka, N), curr1 = Interval(promejutochnaya_tochka, promejutochny_otrezok.GetEnd(), N), R.pop();
-					if (mode == true && schetchick > global_local_iterations && schetchick % 2 == 0 && schetchick < 50)
-					{
-						if ((std::max)(curr.GetM(), curr1.GetM()) > Mmax || min == promejutochnaya_tochka.second)
-						{
-							Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax;
-						}
-						promejutochny_otrezok = R.top(), R.pop(), eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()), promejutochny_otrezok.GetM()), promejutochny_otrezok.ChangeCharacteristic(r * Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax + eta_shtrih - Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax, N), R.push(promejutochny_otrezok);
-						while (R.empty() == false)
-						{
-							promejutochny_otrezok = R.top(), R.pop(), eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()), promejutochny_otrezok.GetM()), promejutochny_otrezok.ChangeCharacteristic(r * Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax + eta_shtrih - Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax, N), R1.push(promejutochny_otrezok);
-							if (R1.size() == 1)
-							{
-								curr.ChangeCharacteristic(r * Mmax * (curr.GetEnd().first - curr.GetStart().first) / dmax + eta_shtrih - Mmax * (curr.GetEnd().first - curr.GetStart().first) / dmax, N), curr1.ChangeCharacteristic(r * Mmax * (curr1.GetEnd().first - curr1.GetStart().first) / dmax + eta_shtrih - Mmax * (curr1.GetEnd().first - curr1.GetStart().first) / dmax, N);
-							}
-						}
-						R = R1, R1 = Priority_queue();
-					}
-					else
-					{
-						if ((std::max)(curr.GetM(), curr1.GetM()) < Mmax && min != promejutochnaya_tochka.second)
-						{
-							curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
-						}
-						else
-						{
-							Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax, curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
-							if (mode == true)
-							{
-								dmax = (std::max)(pow((curr.GetEnd()).first - (curr.GetStart()).first, (1 / double(N))), pow((curr1.GetEnd()).first - (curr1.GetStart()).first, (1 / double(N))));
-							}
-							while (R.empty() == false)
-							{
-								promejutochny_otrezok = R.top();
-								if (mode == true && pow((promejutochny_otrezok.GetEnd()).first - (promejutochny_otrezok.GetStart()).first, (1 / double(N))) > dmax)
-								{
-									dmax = pow((promejutochny_otrezok.GetEnd()).first - (promejutochny_otrezok.GetStart()).first, (1 / double(N)));
-								}
-								promejutochny_otrezok.ChangeCharacteristic(m, N), R1.push(promejutochny_otrezok), R.pop();
-							}
-							R = R1, R1 = Priority_queue();
-						}
-					}
-					R.push(curr), R.push(curr1), promejutochny_otrezok = R.top(), x_Rmax.first = promejutochny_otrezok.GetStart().first, x_Rmax.second = promejutochny_otrezok.GetEnd().first, y_Rmax.first = promejutochny_otrezok.GetStart().second, y_Rmax.second = promejutochny_otrezok.GetEnd().second, schetchick++;
-				}
-				FreeLibrary(load_function);
-			}
-			else
-			{
-				HINSTANCE load_function = LoadLibrary(L"TEST_FUNC.dll"); typedef double (*grsh) (double, double, time_t); grsh GrishaginFunc = (grsh)GetProcAddress(load_function, "GrishaginFunc"); start = std::pair<double, double>(a, GrishaginFunc(a, c, now)), end = std::pair<double, double>(b, GrishaginFunc(b, c, now)), start_Minus_PI_Na_Dva = std::pair<double, double>(a, GrishaginFunc(a, c, now)), end_Minus_PI_Na_Dva = std::pair<double, double>(b, GrishaginFunc(a, d, now)), nachalny_otrezok = Interval(start, end, N), nachalny_otrezok_Minus_PI_Na_Dva = Interval(start_Minus_PI_Na_Dva, end_Minus_PI_Na_Dva, N), Mmax = nachalny_otrezok.GetM(), m = r * Mmax, x_Rmax = std::pair<double, double>(start.first, end.first), y_Rmax = std::pair<double, double>(start.second, end.second), Mmax_Minus_PI_Na_Dva = nachalny_otrezok_Minus_PI_Na_Dva.GetM(), m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva, R.push(nachalny_otrezok), R_Minus_PI_Na_Dva.push(nachalny_otrezok_Minus_PI_Na_Dva), x_Rmax_Minus_PI_Na_Dva = std::pair<double, double>(start_Minus_PI_Na_Dva.first, end_Minus_PI_Na_Dva.first), y_Rmax_Minus_PI_Na_Dva = std::pair<double, double>(start_Minus_PI_Na_Dva.second, end_Minus_PI_Na_Dva.second), pred_i_sled_shag_Minus_PI_Na_Dva = std::pair<double, double>(a, b);
-				while (abs(pred_i_sled_shag.second - pred_i_sled_shag.first) > epsilon)
-				{
-					pred_i_sled_shag.first = pred_i_sled_shag.second, promejutochnaya_tochka.first = pred_i_sled_shag.second = Shag(m, x_Rmax.first, x_Rmax.second, y_Rmax.first, y_Rmax.second, N, r), pred_i_sled_shag_Minus_PI_Na_Dva.first = pred_i_sled_shag_Minus_PI_Na_Dva.second, promejutochnaya_tochka_Minus_PI_Na_Dva.first = pred_i_sled_shag_Minus_PI_Na_Dva.second = Shag(m_Minus_PI_Na_Dva, x_Rmax_Minus_PI_Na_Dva.first, x_Rmax_Minus_PI_Na_Dva.second, y_Rmax_Minus_PI_Na_Dva.first, y_Rmax_Minus_PI_Na_Dva.second, N, r), promejutochnaya_tochka.second = GrishaginFunc(Curve->HitTest_2D(pred_i_sled_shag.second).first, Curve->HitTest_2D(pred_i_sled_shag.second).second, now), promejutochnaya_tochka_Minus_PI_Na_Dva.second = GrishaginFunc(Curve_Minus_PI_Na_Dva->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second).first, Curve_Minus_PI_Na_Dva->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second).second, now); double min = (std::min)(promejutochnaya_tochka.second, promejutochnaya_tochka_Minus_PI_Na_Dva.second);
-					if (Extr.empty() == false)
-					{
-						if (min > Extr.back())
-						{
-							min = Extr.back();
-						}
-					}
-					Extr.push_back(min);
-					if (schetchick == 3000)
-					{
-						return Extr;
-					}
-					promejutochny_otrezok = R.top(), promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(), curr = Interval(promejutochny_otrezok.GetStart(), promejutochnaya_tochka, N), curr1 = Interval(promejutochnaya_tochka, promejutochny_otrezok.GetEnd(), N), R.pop(), curr_Minus_PI_Na_Dva = Interval(promejutochny_otrezok_Minus_PI_Na_Dva.GetStart(), promejutochnaya_tochka_Minus_PI_Na_Dva, N), curr1_Minus_PI_Na_Dva = Interval(promejutochnaya_tochka_Minus_PI_Na_Dva, promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd(), N), R_Minus_PI_Na_Dva.pop();
-					if (mode == true && schetchick > global_local_iterations && schetchick % 2 == 0 && schetchick < 210)
-					{
-						if ((std::max)(curr.GetM(), curr1.GetM()) > Mmax || min == promejutochnaya_tochka.second)
-						{
-							Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax;
-						}
-						promejutochny_otrezok = R.top(), R.pop(), eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()), promejutochny_otrezok.GetM()), promejutochny_otrezok.ChangeCharacteristic(r * Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax + eta_shtrih - Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax, N), R.push(promejutochny_otrezok);
-						while (R.empty() == false)
-						{
-							promejutochny_otrezok = R.top(), R.pop(), eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()), promejutochny_otrezok.GetM()), promejutochny_otrezok.ChangeCharacteristic(r * Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax + eta_shtrih - Mmax * (promejutochny_otrezok.GetEnd().first - promejutochny_otrezok.GetStart().first) / dmax, N), R1.push(promejutochny_otrezok);
-							if (R1.size() == 1)
-							{
-								curr.ChangeCharacteristic(r * Mmax * (curr.GetEnd().first - curr.GetStart().first) / dmax + eta_shtrih - Mmax * (curr.GetEnd().first - curr.GetStart().first) / dmax, N), curr1.ChangeCharacteristic(r * Mmax * (curr1.GetEnd().first - curr1.GetStart().first) / dmax + eta_shtrih - Mmax * (curr1.GetEnd().first - curr1.GetStart().first) / dmax, N);
-							}
-						}
-						R = R1, R1 = Priority_queue();
-						if ((std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()) > Mmax_Minus_PI_Na_Dva || min == promejutochnaya_tochka_Minus_PI_Na_Dva.second)
-						{
-							Mmax_Minus_PI_Na_Dva = (std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()), m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva;
-						}
-						promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(), R_Minus_PI_Na_Dva.pop(), eta_shtrih = (std::max)((std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()), promejutochny_otrezok_Minus_PI_Na_Dva.GetM()), promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(r* Mmax_Minus_PI_Na_Dva* (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first - promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva + eta_shtrih - Mmax_Minus_PI_Na_Dva * (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first - promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva, N), R_Minus_PI_Na_Dva.push(promejutochny_otrezok_Minus_PI_Na_Dva);
-						while (R_Minus_PI_Na_Dva.empty() == false)
-						{
-							promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(), R_Minus_PI_Na_Dva.pop(), eta_shtrih = (std::max)((std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()), promejutochny_otrezok_Minus_PI_Na_Dva.GetM()), promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(r * Mmax_Minus_PI_Na_Dva * (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first - promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva + eta_shtrih - Mmax_Minus_PI_Na_Dva * (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first - promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva, N), R1_Minus_PI_Na_Dva.push(promejutochny_otrezok_Minus_PI_Na_Dva);
-							if (R1_Minus_PI_Na_Dva.size() == 1)
-							{
-								curr_Minus_PI_Na_Dva.ChangeCharacteristic(r * Mmax_Minus_PI_Na_Dva * (curr_Minus_PI_Na_Dva.GetEnd().first - curr_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva + eta_shtrih - Mmax_Minus_PI_Na_Dva * (curr_Minus_PI_Na_Dva.GetEnd().first - curr_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva, N), curr1_Minus_PI_Na_Dva.ChangeCharacteristic(r * Mmax_Minus_PI_Na_Dva * (curr1_Minus_PI_Na_Dva.GetEnd().first - curr1_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva + eta_shtrih - Mmax_Minus_PI_Na_Dva * (curr1_Minus_PI_Na_Dva.GetEnd().first - curr1_Minus_PI_Na_Dva.GetStart().first) / dmax_Minus_PI_Na_Dva, N);
-							}
-						}
-						R_Minus_PI_Na_Dva = R1_Minus_PI_Na_Dva, R1_Minus_PI_Na_Dva = Priority_queue();
-					}
-					else
-					{
-						if ((std::max)(curr.GetM(), curr1.GetM()) < Mmax && min != promejutochnaya_tochka.second)
-						{
-							curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
-						}
-						else
-						{
-							Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax, curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
-							if (mode == true)
-							{
-								dmax = (std::max)(pow((curr.GetEnd()).first - (curr.GetStart()).first, (1 / double(N))), pow((curr1.GetEnd()).first - (curr1.GetStart()).first, (1 / double(N))));
-							}
-							while (R.empty() == false)
-							{
-								promejutochny_otrezok = R.top(), R.pop();
-								if (mode == true && pow((promejutochny_otrezok.GetEnd()).first - (promejutochny_otrezok.GetStart()).first, (1 / double(N))) > dmax)
-								{
-									dmax = pow((promejutochny_otrezok.GetEnd()).first - (promejutochny_otrezok.GetStart()).first, (1 / double(N)));
-								}
-								promejutochny_otrezok.ChangeCharacteristic(m, N), R1.push(promejutochny_otrezok);
-							}
-							R = R1, R1 = Priority_queue();
-						}
-						if ((std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()) < Mmax_Minus_PI_Na_Dva && min != promejutochnaya_tochka_Minus_PI_Na_Dva.second)
-						{
-							curr_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N), curr1_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N);
-						}
-						else
-						{
-							Mmax_Minus_PI_Na_Dva = (std::max)(curr_Minus_PI_Na_Dva.GetM(), curr1_Minus_PI_Na_Dva.GetM()), m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva, curr_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N), curr1_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N);
-							if (mode == true)
-							{
-								dmax_Minus_PI_Na_Dva = (std::max)(pow((curr_Minus_PI_Na_Dva.GetEnd()).first - (curr_Minus_PI_Na_Dva.GetStart()).first, (1 / double(N))), pow((curr1_Minus_PI_Na_Dva.GetEnd()).first - (curr1_Minus_PI_Na_Dva.GetStart()).first, (1 / double(N))));
-							}
-							while (R_Minus_PI_Na_Dva.empty() == false)
-							{
-								promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(), R_Minus_PI_Na_Dva.pop();
-								if (mode == true && pow((promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd()).first - (promejutochny_otrezok_Minus_PI_Na_Dva.GetStart()).first, (1 / double(N))) > dmax_Minus_PI_Na_Dva)
-								{
-									dmax_Minus_PI_Na_Dva = pow((promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd()).first - (promejutochny_otrezok_Minus_PI_Na_Dva.GetStart()).first, (1 / double(N)));
-								}
-								promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N), R1_Minus_PI_Na_Dva.push(promejutochny_otrezok_Minus_PI_Na_Dva);
-							}
-							R_Minus_PI_Na_Dva = R1_Minus_PI_Na_Dva, R1_Minus_PI_Na_Dva = Priority_queue();
-						}
-					}
-					R.push(curr), R.push(curr1), promejutochny_otrezok = R.top(), x_Rmax.first = promejutochny_otrezok.GetStart().first, x_Rmax.second = promejutochny_otrezok.GetEnd().first, y_Rmax.first = promejutochny_otrezok.GetStart().second, y_Rmax.second = promejutochny_otrezok.GetEnd().second, R_Minus_PI_Na_Dva.push(curr_Minus_PI_Na_Dva), R_Minus_PI_Na_Dva.push(curr1_Minus_PI_Na_Dva), promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(), x_Rmax_Minus_PI_Na_Dva.first = promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first, x_Rmax_Minus_PI_Na_Dva.second = promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first, y_Rmax_Minus_PI_Na_Dva.first = promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().second, y_Rmax_Minus_PI_Na_Dva.second = promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().second, schetchick++;
-				}
-				FreeLibrary(load_function);
-			}
-			return Extr;
-		}
+  cliext::deque<double> Base_LNA_1_2_Mer_AGP(
+      time_t now, bool mode, unsigned short N, double b, PeanoCurve_2D ^ Curve,
+      PeanoCurve_2D ^ Curve_Minus_PI_Na_Dva, unsigned short r, double epsilon,
+      unsigned short global_local_iterations, double a, double c, double d) {
+    std::pair<double, double> start, end, start_Minus_PI_Na_Dva,
+        end_Minus_PI_Na_Dva, x_Rmax, y_Rmax, x_Rmax_Minus_PI_Na_Dva,
+        y_Rmax_Minus_PI_Na_Dva, pred_i_sled_shag,
+        pred_i_sled_shag_Minus_PI_Na_Dva, promejutochnaya_tochka,
+        promejutochnaya_tochka_Minus_PI_Na_Dva;
+    Interval nachalny_otrezok, nachalny_otrezok_Minus_PI_Na_Dva,
+        promejutochny_otrezok, promejutochny_otrezok_Minus_PI_Na_Dva, curr,
+        curr1, curr_Minus_PI_Na_Dva, curr1_Minus_PI_Na_Dva;
+    double Mmax, Mmax_Minus_PI_Na_Dva, m, m_Minus_PI_Na_Dva, dmax,
+        dmax_Minus_PI_Na_Dva, eta_shtrih;
+    Priority_queue R, R_Minus_PI_Na_Dva, R1, R1_Minus_PI_Na_Dva;
+    pred_i_sled_shag = std::pair<double, double>(a, b);
+    cliext::deque<double> Extr;
+    unsigned short schetchick = 0;
+    if (N == 1) {
+      HINSTANCE load_function = LoadLibrary(L"TEST_FUNC.dll");
+      typedef double (*sh)(double, time_t);
+      sh ShekelFunc = (sh)GetProcAddress(load_function, "ShekelFunc");
+      start = std::pair<double, double>(a, ShekelFunc(a, now)),
+      end = std::pair<double, double>(b, ShekelFunc(b, now)),
+      nachalny_otrezok = Interval(start, end, N),
+      Mmax = nachalny_otrezok.GetM(), m = r * Mmax,
+      x_Rmax = std::pair<double, double>(start.first, end.first),
+      y_Rmax = std::pair<double, double>(start.second, end.second),
+      R.push(nachalny_otrezok);
+      while (true) {
+        pred_i_sled_shag.first = pred_i_sled_shag.second,
+        promejutochnaya_tochka.first = pred_i_sled_shag.second = Shag(
+            m, x_Rmax.first, x_Rmax.second, y_Rmax.first, y_Rmax.second, N, r),
+        promejutochnaya_tochka.second =
+            ShekelFunc(pred_i_sled_shag.second, now);
+        double min = promejutochnaya_tochka.second;
+        if (Extr.empty() == false) {
+          if (min > Extr.back()) {
+            min = Extr.back();
+          }
+        }
+        Extr.push_back(min);
+        if (schetchick == 1000) {
+          return Extr;
+        }
+        promejutochny_otrezok = R.top(),
+        curr = Interval(promejutochny_otrezok.GetStart(),
+                        promejutochnaya_tochka, N),
+        curr1 =
+            Interval(promejutochnaya_tochka, promejutochny_otrezok.GetEnd(), N),
+        R.pop();
+        if (mode == true && schetchick > global_local_iterations &&
+            schetchick % 2 == 0 && schetchick < 50) {
+          if ((std::max)(curr.GetM(), curr1.GetM()) > Mmax ||
+              min == promejutochnaya_tochka.second) {
+            Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax;
+          }
+          promejutochny_otrezok = R.top(), R.pop(),
+          eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()),
+                                  promejutochny_otrezok.GetM()),
+          promejutochny_otrezok.ChangeCharacteristic(
+              r * Mmax *
+                      (promejutochny_otrezok.GetEnd().first -
+                       promejutochny_otrezok.GetStart().first) /
+                      dmax +
+                  eta_shtrih -
+                  Mmax *
+                      (promejutochny_otrezok.GetEnd().first -
+                       promejutochny_otrezok.GetStart().first) /
+                      dmax,
+              N),
+          R.push(promejutochny_otrezok);
+          while (R.empty() == false) {
+            promejutochny_otrezok = R.top(), R.pop(),
+            eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()),
+                                    promejutochny_otrezok.GetM()),
+            promejutochny_otrezok.ChangeCharacteristic(
+                r * Mmax *
+                        (promejutochny_otrezok.GetEnd().first -
+                         promejutochny_otrezok.GetStart().first) /
+                        dmax +
+                    eta_shtrih -
+                    Mmax *
+                        (promejutochny_otrezok.GetEnd().first -
+                         promejutochny_otrezok.GetStart().first) /
+                        dmax,
+                N),
+            R1.push(promejutochny_otrezok);
+            if (R1.size() == 1) {
+              curr.ChangeCharacteristic(
+                  r * Mmax * (curr.GetEnd().first - curr.GetStart().first) /
+                          dmax +
+                      eta_shtrih -
+                      Mmax * (curr.GetEnd().first - curr.GetStart().first) /
+                          dmax,
+                  N),
+                  curr1.ChangeCharacteristic(
+                      r * Mmax *
+                              (curr1.GetEnd().first - curr1.GetStart().first) /
+                              dmax +
+                          eta_shtrih -
+                          Mmax *
+                              (curr1.GetEnd().first - curr1.GetStart().first) /
+                              dmax,
+                      N);
+            }
+          }
+          R = R1, R1 = Priority_queue();
+        } else {
+          if ((std::max)(curr.GetM(), curr1.GetM()) < Mmax &&
+              min != promejutochnaya_tochka.second) {
+            curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
+          } else {
+            Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax,
+            curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
+            if (mode == true) {
+              dmax = (std::max)(
+                  pow((curr.GetEnd()).first - (curr.GetStart()).first,
+                      (1 / double(N))),
+                  pow((curr1.GetEnd()).first - (curr1.GetStart()).first,
+                      (1 / double(N))));
+            }
+            while (R.empty() == false) {
+              promejutochny_otrezok = R.top();
+              if (mode == true &&
+                  pow((promejutochny_otrezok.GetEnd()).first -
+                          (promejutochny_otrezok.GetStart()).first,
+                      (1 / double(N))) > dmax) {
+                dmax = pow((promejutochny_otrezok.GetEnd()).first -
+                               (promejutochny_otrezok.GetStart()).first,
+                           (1 / double(N)));
+              }
+              promejutochny_otrezok.ChangeCharacteristic(m, N),
+                  R1.push(promejutochny_otrezok), R.pop();
+            }
+            R = R1, R1 = Priority_queue();
+          }
+        }
+        R.push(curr), R.push(curr1), promejutochny_otrezok = R.top();
+        if (abs(promejutochny_otrezok.GetEnd().first -
+                promejutochny_otrezok.GetStart().first) < epsilon) {
+          return Extr;
+        }
+        x_Rmax.first = promejutochny_otrezok.GetStart().first,
+        x_Rmax.second = promejutochny_otrezok.GetEnd().first,
+        y_Rmax.first = promejutochny_otrezok.GetStart().second,
+        y_Rmax.second = promejutochny_otrezok.GetEnd().second, schetchick++;
+      }
+      FreeLibrary(load_function);
+    } else {
+      HINSTANCE load_function = LoadLibrary(L"TEST_FUNC.dll");
+      typedef double (*rr)(double, double);
+      rr RastriginFunc = (rr)GetProcAddress(load_function, "RastriginFunc");
+      start = std::pair<double, double>(a, RastriginFunc(a, c)),
+      end = std::pair<double, double>(b, RastriginFunc(b, c)),
+      start_Minus_PI_Na_Dva = std::pair<double, double>(b, RastriginFunc(b, d)),
+      end_Minus_PI_Na_Dva = std::pair<double, double>(a, RastriginFunc(a, d)),
+      nachalny_otrezok = Interval(start, end, N),
+      nachalny_otrezok_Minus_PI_Na_Dva =
+          Interval(start_Minus_PI_Na_Dva, end_Minus_PI_Na_Dva, N),
+      Mmax = nachalny_otrezok.GetM(), m = r * Mmax,
+      x_Rmax = std::pair<double, double>(start.first, end.first),
+      y_Rmax = std::pair<double, double>(start.second, end.second),
+      Mmax_Minus_PI_Na_Dva = nachalny_otrezok_Minus_PI_Na_Dva.GetM(),
+      m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva, R.push(nachalny_otrezok),
+      R_Minus_PI_Na_Dva.push(nachalny_otrezok_Minus_PI_Na_Dva),
+      x_Rmax_Minus_PI_Na_Dva = std::pair<double, double>(
+          start_Minus_PI_Na_Dva.first, end_Minus_PI_Na_Dva.first),
+      y_Rmax_Minus_PI_Na_Dva = std::pair<double, double>(
+          start_Minus_PI_Na_Dva.second, end_Minus_PI_Na_Dva.second),
+      pred_i_sled_shag_Minus_PI_Na_Dva = std::pair<double, double>(a, b);
+      while (true) {
+        pred_i_sled_shag.first = pred_i_sled_shag.second,
+        promejutochnaya_tochka.first = pred_i_sled_shag.second = Shag(
+            m, x_Rmax.first, x_Rmax.second, y_Rmax.first, y_Rmax.second, N, r),
+        pred_i_sled_shag_Minus_PI_Na_Dva.first =
+            pred_i_sled_shag_Minus_PI_Na_Dva.second,
+        promejutochnaya_tochka_Minus_PI_Na_Dva.first =
+            pred_i_sled_shag_Minus_PI_Na_Dva.second = Shag(
+                m_Minus_PI_Na_Dva, x_Rmax_Minus_PI_Na_Dva.first,
+                x_Rmax_Minus_PI_Na_Dva.second, y_Rmax_Minus_PI_Na_Dva.first,
+                y_Rmax_Minus_PI_Na_Dva.second, N, r),
+        promejutochnaya_tochka.second =
+            RastriginFunc(Curve->HitTest_2D(pred_i_sled_shag.second).first,
+                          Curve->HitTest_2D(pred_i_sled_shag.second).second),
+        promejutochnaya_tochka_Minus_PI_Na_Dva.second = RastriginFunc(
+            Curve_Minus_PI_Na_Dva
+                ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                .first,
+            Curve_Minus_PI_Na_Dva
+                ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                .second);
+        double min = (std::min)(promejutochnaya_tochka.second,
+                                promejutochnaya_tochka_Minus_PI_Na_Dva.second);
+        if (Extr.empty() == false) {
+          if (min > Extr.back()) {
+            min = Extr.back();
+          }
+        }
+        if (min == promejutochnaya_tochka.second) {
+          Extr.push_back(Curve->HitTest_2D(pred_i_sled_shag.second).first);
+          Extr.push_back(Curve->HitTest_2D(pred_i_sled_shag.second).second);
+        } else {
+          Extr.push_back(
+              Curve_Minus_PI_Na_Dva
+                  ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                  .first);
+          Extr.push_back(
+              Curve_Minus_PI_Na_Dva
+                  ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                  .second);
+        }
+        Extr.push_back(min);
+        if (schetchick == 10000) {
+          return Extr;
+        }
+        promejutochny_otrezok = R.top(),
+        promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(),
+        curr = Interval(promejutochny_otrezok.GetStart(),
+                        promejutochnaya_tochka, N),
+        curr1 =
+            Interval(promejutochnaya_tochka, promejutochny_otrezok.GetEnd(), N),
+        R.pop(),
+        curr_Minus_PI_Na_Dva =
+            Interval(promejutochny_otrezok_Minus_PI_Na_Dva.GetStart(),
+                     promejutochnaya_tochka_Minus_PI_Na_Dva, N),
+        curr1_Minus_PI_Na_Dva =
+            Interval(promejutochnaya_tochka_Minus_PI_Na_Dva,
+                     promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd(), N),
+        R_Minus_PI_Na_Dva.pop();
+        if (mode == true && schetchick > global_local_iterations &&
+            schetchick % 2 == 0 && schetchick < 210) {
+          if ((std::max)(curr.GetM(), curr1.GetM()) > Mmax ||
+              min == promejutochnaya_tochka.second) {
+            Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax;
+          }
+          promejutochny_otrezok = R.top(), R.pop(),
+          eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()),
+                                  promejutochny_otrezok.GetM()),
+          promejutochny_otrezok.ChangeCharacteristic(
+              r * Mmax *
+                      (promejutochny_otrezok.GetEnd().first -
+                       promejutochny_otrezok.GetStart().first) /
+                      dmax +
+                  eta_shtrih -
+                  Mmax *
+                      (promejutochny_otrezok.GetEnd().first -
+                       promejutochny_otrezok.GetStart().first) /
+                      dmax,
+              N),
+          R.push(promejutochny_otrezok);
+          while (R.empty() == false) {
+            promejutochny_otrezok = R.top(), R.pop(),
+            eta_shtrih = (std::max)((std::max)(curr.GetM(), curr1.GetM()),
+                                    promejutochny_otrezok.GetM()),
+            promejutochny_otrezok.ChangeCharacteristic(
+                r * Mmax *
+                        (promejutochny_otrezok.GetEnd().first -
+                         promejutochny_otrezok.GetStart().first) /
+                        dmax +
+                    eta_shtrih -
+                    Mmax *
+                        (promejutochny_otrezok.GetEnd().first -
+                         promejutochny_otrezok.GetStart().first) /
+                        dmax,
+                N),
+            R1.push(promejutochny_otrezok);
+            if (R1.size() == 1) {
+              curr.ChangeCharacteristic(
+                  r * Mmax * (curr.GetEnd().first - curr.GetStart().first) /
+                          dmax +
+                      eta_shtrih -
+                      Mmax * (curr.GetEnd().first - curr.GetStart().first) /
+                          dmax,
+                  N),
+                  curr1.ChangeCharacteristic(
+                      r * Mmax *
+                              (curr1.GetEnd().first - curr1.GetStart().first) /
+                              dmax +
+                          eta_shtrih -
+                          Mmax *
+                              (curr1.GetEnd().first - curr1.GetStart().first) /
+                              dmax,
+                      N);
+            }
+          }
+          R = R1, R1 = Priority_queue();
+          if ((std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                         curr1_Minus_PI_Na_Dva.GetM()) > Mmax_Minus_PI_Na_Dva ||
+              min == promejutochnaya_tochka_Minus_PI_Na_Dva.second) {
+            Mmax_Minus_PI_Na_Dva = (std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                                              curr1_Minus_PI_Na_Dva.GetM()),
+            m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva;
+          }
+          promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(),
+          R_Minus_PI_Na_Dva.pop(),
+          eta_shtrih = (std::max)((std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                                             curr1_Minus_PI_Na_Dva.GetM()),
+                                  promejutochny_otrezok_Minus_PI_Na_Dva.GetM()),
+          promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(
+              r * Mmax_Minus_PI_Na_Dva *
+                      (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                       promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) /
+                      dmax_Minus_PI_Na_Dva +
+                  eta_shtrih -
+                  Mmax_Minus_PI_Na_Dva *
+                      (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                       promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) /
+                      dmax_Minus_PI_Na_Dva,
+              N),
+          R_Minus_PI_Na_Dva.push(promejutochny_otrezok_Minus_PI_Na_Dva);
+          while (R_Minus_PI_Na_Dva.empty() == false) {
+            promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(),
+            R_Minus_PI_Na_Dva.pop(),
+            eta_shtrih =
+                (std::max)((std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                                      curr1_Minus_PI_Na_Dva.GetM()),
+                           promejutochny_otrezok_Minus_PI_Na_Dva.GetM()),
+            promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(
+                r * Mmax_Minus_PI_Na_Dva *
+                        (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                         promejutochny_otrezok_Minus_PI_Na_Dva.GetStart()
+                             .first) /
+                        dmax_Minus_PI_Na_Dva +
+                    eta_shtrih -
+                    Mmax_Minus_PI_Na_Dva *
+                        (promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                         promejutochny_otrezok_Minus_PI_Na_Dva.GetStart()
+                             .first) /
+                        dmax_Minus_PI_Na_Dva,
+                N),
+            R1_Minus_PI_Na_Dva.push(promejutochny_otrezok_Minus_PI_Na_Dva);
+            if (R1_Minus_PI_Na_Dva.size() == 1) {
+              curr_Minus_PI_Na_Dva.ChangeCharacteristic(
+                  r * Mmax_Minus_PI_Na_Dva *
+                          (curr_Minus_PI_Na_Dva.GetEnd().first -
+                           curr_Minus_PI_Na_Dva.GetStart().first) /
+                          dmax_Minus_PI_Na_Dva +
+                      eta_shtrih -
+                      Mmax_Minus_PI_Na_Dva *
+                          (curr_Minus_PI_Na_Dva.GetEnd().first -
+                           curr_Minus_PI_Na_Dva.GetStart().first) /
+                          dmax_Minus_PI_Na_Dva,
+                  N),
+                  curr1_Minus_PI_Na_Dva.ChangeCharacteristic(
+                      r * Mmax_Minus_PI_Na_Dva *
+                              (curr1_Minus_PI_Na_Dva.GetEnd().first -
+                               curr1_Minus_PI_Na_Dva.GetStart().first) /
+                              dmax_Minus_PI_Na_Dva +
+                          eta_shtrih -
+                          Mmax_Minus_PI_Na_Dva *
+                              (curr1_Minus_PI_Na_Dva.GetEnd().first -
+                               curr1_Minus_PI_Na_Dva.GetStart().first) /
+                              dmax_Minus_PI_Na_Dva,
+                      N);
+            }
+          }
+          R_Minus_PI_Na_Dva = R1_Minus_PI_Na_Dva,
+          R1_Minus_PI_Na_Dva = Priority_queue();
+        } else {
+          if ((std::max)(curr.GetM(), curr1.GetM()) < Mmax &&
+              min != promejutochnaya_tochka.second) {
+            curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
+          } else {
+            Mmax = (std::max)(curr.GetM(), curr1.GetM()), m = r * Mmax,
+            curr.ChangeCharacteristic(m, N), curr1.ChangeCharacteristic(m, N);
+            if (mode == true) {
+              dmax = (std::max)(
+                  pow((curr.GetEnd()).first - (curr.GetStart()).first,
+                      (1 / double(N))),
+                  pow((curr1.GetEnd()).first - (curr1.GetStart()).first,
+                      (1 / double(N))));
+            }
+            while (R.empty() == false) {
+              promejutochny_otrezok = R.top(), R.pop();
+              if (mode == true &&
+                  pow((promejutochny_otrezok.GetEnd()).first -
+                          (promejutochny_otrezok.GetStart()).first,
+                      (1 / double(N))) > dmax) {
+                dmax = pow((promejutochny_otrezok.GetEnd()).first -
+                               (promejutochny_otrezok.GetStart()).first,
+                           (1 / double(N)));
+              }
+              promejutochny_otrezok.ChangeCharacteristic(m, N),
+                  R1.push(promejutochny_otrezok);
+            }
+            R = R1, R1 = Priority_queue();
+          }
+          if ((std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                         curr1_Minus_PI_Na_Dva.GetM()) < Mmax_Minus_PI_Na_Dva &&
+              min != promejutochnaya_tochka_Minus_PI_Na_Dva.second) {
+            curr_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N),
+                curr1_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva,
+                                                           N);
+          } else {
+            Mmax_Minus_PI_Na_Dva = (std::max)(curr_Minus_PI_Na_Dva.GetM(),
+                                              curr1_Minus_PI_Na_Dva.GetM()),
+            m_Minus_PI_Na_Dva = r * Mmax_Minus_PI_Na_Dva,
+            curr_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N),
+            curr1_Minus_PI_Na_Dva.ChangeCharacteristic(m_Minus_PI_Na_Dva, N);
+            if (mode == true) {
+              dmax_Minus_PI_Na_Dva =
+                  (std::max)(pow((curr_Minus_PI_Na_Dva.GetEnd()).first -
+                                     (curr_Minus_PI_Na_Dva.GetStart()).first,
+                                 (1 / double(N))),
+                             pow((curr1_Minus_PI_Na_Dva.GetEnd()).first -
+                                     (curr1_Minus_PI_Na_Dva.GetStart()).first,
+                                 (1 / double(N))));
+            }
+            while (R_Minus_PI_Na_Dva.empty() == false) {
+              promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top(),
+              R_Minus_PI_Na_Dva.pop();
+              if (mode == true &&
+                  pow((promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd()).first -
+                          (promejutochny_otrezok_Minus_PI_Na_Dva.GetStart())
+                              .first,
+                      (1 / double(N))) > dmax_Minus_PI_Na_Dva) {
+                dmax_Minus_PI_Na_Dva =
+                    pow((promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd()).first -
+                            (promejutochny_otrezok_Minus_PI_Na_Dva.GetStart())
+                                .first,
+                        (1 / double(N)));
+              }
+              promejutochny_otrezok_Minus_PI_Na_Dva.ChangeCharacteristic(
+                  m_Minus_PI_Na_Dva, N),
+                  R1_Minus_PI_Na_Dva.push(
+                      promejutochny_otrezok_Minus_PI_Na_Dva);
+            }
+            R_Minus_PI_Na_Dva = R1_Minus_PI_Na_Dva,
+            R1_Minus_PI_Na_Dva = Priority_queue();
+          }
+        }
+        R.push(curr), R.push(curr1),
+            promejutochny_otrezok = R.top(),
+            R_Minus_PI_Na_Dva.push(curr_Minus_PI_Na_Dva),
+            R_Minus_PI_Na_Dva.push(curr1_Minus_PI_Na_Dva),
+            promejutochny_otrezok_Minus_PI_Na_Dva = R_Minus_PI_Na_Dva.top();
+        if (abs(promejutochny_otrezok.GetEnd().first -
+                promejutochny_otrezok.GetStart().first) < epsilon &&
+            abs(promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) <
+                epsilon) {
+          return Extr;
+        }
+        x_Rmax.first = promejutochny_otrezok.GetStart().first,
+        x_Rmax.second = promejutochny_otrezok.GetEnd().first,
+        y_Rmax.first = promejutochny_otrezok.GetStart().second,
+        y_Rmax.second = promejutochny_otrezok.GetEnd().second,
+        x_Rmax_Minus_PI_Na_Dva.first =
+            promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first,
+        x_Rmax_Minus_PI_Na_Dva.second =
+            promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first,
+        y_Rmax_Minus_PI_Na_Dva.first =
+            promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().second,
+        y_Rmax_Minus_PI_Na_Dva.second =
+            promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().second,
+        schetchick++;
+      }
+      FreeLibrary(load_function);
+    }
+    return Extr;
+  }
 		MyForm(void)
 		{
 			InitializeComponent();
