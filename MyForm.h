@@ -1,14 +1,10 @@
 #include "FUNCTIONAL.cpp"
 namespace TESTAGP {
 using namespace System;
-using namespace System::ComponentModel;
-using namespace System::Collections;
 using namespace System::Windows::Forms;
-using namespace System::Data;
-using namespace System::Drawing;
 public
 ref class MyForm : public System::Windows::Forms::Form {
-public:
+ public:
   double Sign(double Value) {
     if (Value > 0.) {
       return 1;
@@ -26,7 +22,8 @@ public:
   cliext::deque<double> Base_LNA_1_2_Mer_AGP(
       time_t now, bool mode, unsigned short N, double b, PeanoCurve_2D ^ Curve,
       PeanoCurve_2D ^ Curve_Minus_PI_Na_Dva, unsigned short r, double epsilon,
-      unsigned short global_local_iterations, double a, double c, double d) {
+      unsigned short global_iterations, unsigned short global_local_iterations,
+      double a, double c, double d) {
     std::pair<double, double> start, end, start_Minus_PI_Na_Dva,
         end_Minus_PI_Na_Dva, x_Rmax, y_Rmax, x_Rmax_Minus_PI_Na_Dva,
         y_Rmax_Minus_PI_Na_Dva, pred_i_sled_shag,
@@ -65,7 +62,7 @@ public:
           }
         }
         Extr.push_back(min);
-        if (schetchick == 1000) {
+        if (schetchick == global_iterations) {
           return Extr;
         }
         promejutochny_otrezok = R.top(),
@@ -201,11 +198,10 @@ public:
         pred_i_sled_shag_Minus_PI_Na_Dva.first =
             pred_i_sled_shag_Minus_PI_Na_Dva.second,
         promejutochnaya_tochka_Minus_PI_Na_Dva.first =
-            pred_i_sled_shag_Minus_PI_Na_Dva.second =
-                Shag(m_Minus_PI_Na_Dva, x_Rmax_Minus_PI_Na_Dva.first,
-                     x_Rmax_Minus_PI_Na_Dva.second,
-                     y_Rmax_Minus_PI_Na_Dva.first,
-                     y_Rmax_Minus_PI_Na_Dva.second, N, r),
+            pred_i_sled_shag_Minus_PI_Na_Dva.second = Shag(
+                m_Minus_PI_Na_Dva, x_Rmax_Minus_PI_Na_Dva.first,
+                x_Rmax_Minus_PI_Na_Dva.second, y_Rmax_Minus_PI_Na_Dva.first,
+                y_Rmax_Minus_PI_Na_Dva.second, N, r),
         promejutochnaya_tochka.second =
             RastriginFunc(Curve->HitTest_2D(pred_i_sled_shag.second).first,
                           Curve->HitTest_2D(pred_i_sled_shag.second).second),
@@ -224,20 +220,42 @@ public:
           }
         }
         if (min == promejutochnaya_tochka.second) {
-          Extr.push_back(Curve->HitTest_2D(pred_i_sled_shag.second).first);
-          Extr.push_back(Curve->HitTest_2D(pred_i_sled_shag.second).second);
+          chart2->Series[0]->Points->AddXY(
+              Curve->HitTest_2D(pred_i_sled_shag.second).first,
+              Curve->HitTest_2D(pred_i_sled_shag.second).second);
         } else {
-          Extr.push_back(
+          chart2->Series[0]->Points->AddXY(
               Curve_Minus_PI_Na_Dva
                   ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
-                  .first);
-          Extr.push_back(
+                  .first,
               Curve_Minus_PI_Na_Dva
                   ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
                   .second);
         }
         Extr.push_back(min);
-        if (schetchick == 10000) {
+        if (schetchick == global_iterations) {
+          textBox6->Text = Convert::ToString(global_iterations);
+          textBox7->Text = Convert::ToString((std::max)(
+              abs(promejutochny_otrezok.GetEnd().first -
+                  promejutochny_otrezok.GetStart().first),
+              abs(promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                  promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first)));
+          if (promejutochnaya_tochka.second <
+              promejutochnaya_tochka_Minus_PI_Na_Dva.second) {
+            textBox4->Text = Convert::ToString(
+                Curve->HitTest_2D(pred_i_sled_shag.second).first);
+            textBox3->Text = Convert::ToString(
+                Curve->HitTest_2D(pred_i_sled_shag.second).second);
+          } else {
+            textBox4->Text = Convert::ToString(
+                Curve_Minus_PI_Na_Dva
+                    ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                    .first);
+            textBox3->Text = Convert::ToString(
+                Curve_Minus_PI_Na_Dva
+                    ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                    .second);
+          }
           return Extr;
         }
         promejutochny_otrezok = R.top(),
@@ -466,6 +484,28 @@ public:
             abs(promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
                 promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first) <
                 epsilon) {
+          textBox6->Text = Convert::ToString(schetchick);
+          textBox7->Text = Convert::ToString((std::max)(
+              abs(promejutochny_otrezok.GetEnd().first -
+                  promejutochny_otrezok.GetStart().first),
+              abs(promejutochny_otrezok_Minus_PI_Na_Dva.GetEnd().first -
+                  promejutochny_otrezok_Minus_PI_Na_Dva.GetStart().first)));
+          if (promejutochnaya_tochka.second <
+              promejutochnaya_tochka_Minus_PI_Na_Dva.second) {
+            textBox4->Text = Convert::ToString(
+                Curve->HitTest_2D(pred_i_sled_shag.second).first);
+            textBox3->Text = Convert::ToString(
+                Curve->HitTest_2D(pred_i_sled_shag.second).second);
+          } else {
+            textBox4->Text = Convert::ToString(
+                Curve_Minus_PI_Na_Dva
+                    ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                    .first);
+            textBox3->Text = Convert::ToString(
+                Curve_Minus_PI_Na_Dva
+                    ->HitTest_2D(pred_i_sled_shag_Minus_PI_Na_Dva.second)
+                    .second);
+          }
           return Extr;
         }
         x_Rmax.first = promejutochny_otrezok.GetStart().first,
@@ -488,17 +528,28 @@ public:
   }
   MyForm(void) { InitializeComponent(); }
 
-protected:
+ protected:
   ~MyForm() {
     if (components) {
       delete components;
     }
   }
-
-private:
-  System::Windows::Forms::DataVisualization::Charting::Chart ^ chart1;
-
-private:
+  System::Windows::Forms::Button ^ button1;
+  System::Windows::Forms::TextBox ^ textBox2;
+  System::Windows::Forms::DataVisualization::Charting::Chart ^ chart2;
+  System::Windows::Forms::Label ^ label2;
+  System::Windows::Forms::TextBox ^ textBox1;
+  System::Windows::Forms::TextBox ^ textBox3;
+  System::Windows::Forms::TextBox ^ textBox4;
+  System::Windows::Forms::TextBox ^ textBox5;
+  System::Windows::Forms::TextBox ^ textBox6;
+  System::Windows::Forms::Label ^ label6;
+  System::Windows::Forms::Label ^ label7;
+  System::Windows::Forms::Label ^ label8;
+  System::Windows::Forms::Label ^ label9;
+  System::Windows::Forms::Label ^ label10;
+  System::Windows::Forms::Label ^ label1;
+  System::Windows::Forms::TextBox ^ textBox7;
   System::ComponentModel::Container ^ components;
 #pragma region Windows Form Designer generated code
   void InitializeComponent(void) {
@@ -512,318 +563,463 @@ private:
         (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
     System::Windows::Forms::DataVisualization::Charting::Series ^ series2 =
         (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
-    System::Windows::Forms::DataVisualization::Charting::Series ^ series3 =
-        (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
-    System::Windows::Forms::DataVisualization::Charting::Series ^ series4 =
-        (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
-    System::Windows::Forms::DataVisualization::Charting::Title ^ title1 =
-        (gcnew System::Windows::Forms::DataVisualization::Charting::Title());
-    this->chart1 =
+    this->button1 = (gcnew System::Windows::Forms::Button());
+    this->textBox2 = (gcnew System::Windows::Forms::TextBox());
+    this->chart2 =
         (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
-    (cli::safe_cast<System::ComponentModel::ISupportInitialize ^>(this->chart1))
+    this->label2 = (gcnew System::Windows::Forms::Label());
+    this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+    this->textBox3 = (gcnew System::Windows::Forms::TextBox());
+    this->textBox4 = (gcnew System::Windows::Forms::TextBox());
+    this->textBox5 = (gcnew System::Windows::Forms::TextBox());
+    this->textBox6 = (gcnew System::Windows::Forms::TextBox());
+    this->label6 = (gcnew System::Windows::Forms::Label());
+    this->label7 = (gcnew System::Windows::Forms::Label());
+    this->label8 = (gcnew System::Windows::Forms::Label());
+    this->label9 = (gcnew System::Windows::Forms::Label());
+    this->label10 = (gcnew System::Windows::Forms::Label());
+    this->label1 = (gcnew System::Windows::Forms::Label());
+    this->textBox7 = (gcnew System::Windows::Forms::TextBox());
+    (cli::safe_cast<System::ComponentModel::ISupportInitialize ^>(this->chart2))
         ->BeginInit();
     this->SuspendLayout();
-    chartArea1->AxisX->Interval = 50;
-    chartArea1->AxisX->IntervalOffsetType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisX->IntervalType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
+    //
+    // button1
+    //
+    this->button1->BackColor = System::Drawing::SystemColors::Info;
+    this->button1->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->button1->FlatAppearance->BorderColor =
+        System::Drawing::Color::FromArgb(
+            static_cast<System::Int32>(static_cast<System::Byte>(64)),
+            static_cast<System::Int32>(static_cast<System::Byte>(64)),
+            static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->button1->FlatAppearance->BorderSize = 3;
+    this->button1->FlatAppearance->MouseDownBackColor =
+        System::Drawing::Color::FromArgb(
+            static_cast<System::Int32>(static_cast<System::Byte>(128)),
+            static_cast<System::Int32>(static_cast<System::Byte>(128)),
+            static_cast<System::Int32>(static_cast<System::Byte>(255)));
+    this->button1->FlatAppearance->MouseOverBackColor =
+        System::Drawing::Color::FromArgb(
+            static_cast<System::Int32>(static_cast<System::Byte>(192)),
+            static_cast<System::Int32>(static_cast<System::Byte>(192)),
+            static_cast<System::Int32>(static_cast<System::Byte>(255)));
+    this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->button1->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 14.25F, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->button1->ForeColor = System::Drawing::SystemColors::ControlDarkDark;
+    this->button1->Location = System::Drawing::Point(897, 724);
+    this->button1->Name = L"button1";
+    this->button1->Size = System::Drawing::Size(275, 75);
+    this->button1->TabIndex = 2;
+    this->button1->Text = L"SOL";
+    this->button1->UseVisualStyleBackColor = false;
+    this->button1->Click +=
+        gcnew System::EventHandler(this, &MyForm::button1_Click);
+    //
+    // textBox2
+    //
+    this->textBox2->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox2->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox2->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox2->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox2->Location = System::Drawing::Point(992, 619);
+    this->textBox2->Name = L"textBox2";
+    this->textBox2->Size = System::Drawing::Size(180, 29);
+    this->textBox2->TabIndex = 4;
+    //
+    // chart2
+    //
+    this->chart2->BackColor = System::Drawing::SystemColors::ControlLight;
+    chartArea1->AxisX->Interval = 0.1;
     chartArea1->AxisX->IsLabelAutoFit = false;
-    chartArea1->AxisX->LabelAutoFitStyle =
-        static_cast<System::Windows::Forms::DataVisualization::Charting::
-                        LabelAutoFitStyles>(
-            ((((((System::Windows::Forms::DataVisualization::Charting::
-                      LabelAutoFitStyles::IncreaseFont |
-                  System::Windows::Forms::DataVisualization::Charting::
-                      LabelAutoFitStyles::DecreaseFont) |
-                 System::Windows::Forms::DataVisualization::Charting::
-                     LabelAutoFitStyles::StaggeredLabels) |
-                System::Windows::Forms::DataVisualization::Charting::
-                    LabelAutoFitStyles::LabelsAngleStep30) |
-               System::Windows::Forms::DataVisualization::Charting::
-                   LabelAutoFitStyles::LabelsAngleStep45) |
-              System::Windows::Forms::DataVisualization::Charting::
-                  LabelAutoFitStyles::LabelsAngleStep90) |
-             System::Windows::Forms::DataVisualization::Charting::
-                 LabelAutoFitStyles::WordWrap));
-    chartArea1->AxisX->LabelStyle->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 9, System::Drawing::FontStyle::Bold,
-        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    chartArea1->AxisX->LabelStyle->IntervalOffsetType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisX->LabelStyle->IntervalType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisX->LineWidth = 3;
-    chartArea1->AxisX->LogarithmBase = 2;
-    chartArea1->AxisX->MajorGrid->LineColor = System::Drawing::Color::Lime;
-    chartArea1->AxisX->Maximum = 3000;
-    chartArea1->AxisX->Minimum = 0;
-    chartArea1->AxisX->MinorGrid->Enabled = true;
-    chartArea1->AxisX->MinorGrid->Interval = 500;
-    chartArea1->AxisX->MinorGrid->LineColor = System::Drawing::Color::Crimson;
-    chartArea1->AxisX->MinorGrid->LineWidth = 4;
-    chartArea1->AxisX->Title = L"NUMBER OF METHOD ITERATIONS";
+    chartArea1->AxisX->LabelStyle->Font =
+        (gcnew System::Drawing::Font(L"Yu Gothic", 6.75F));
+    chartArea1->AxisX->Maximum = 1.8;
+    chartArea1->AxisX->Minimum = -2.2;
+    chartArea1->AxisX->Title = L"x1";
     chartArea1->AxisX->TitleFont = (gcnew System::Drawing::Font(
-        L"MS Gothic", 18, System::Drawing::FontStyle::Bold,
+        L"Yu Gothic UI", 11.25F, System::Drawing::FontStyle::Bold,
         System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    chartArea1->AxisX2->Interval = 1000;
-    chartArea1->AxisX2->IntervalOffsetType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisX2->IntervalType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisX2->MajorGrid->LineColor = System::Drawing::Color::Red;
-    chartArea1->AxisX2->TitleFont = (gcnew System::Drawing::Font(
-        L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Regular,
-        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    chartArea1->AxisY->Interval = 5;
-    chartArea1->AxisY->IntervalOffsetType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisY->IntervalType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
+    chartArea1->AxisY->Interval = 0.1;
     chartArea1->AxisY->IsLabelAutoFit = false;
-    chartArea1->AxisY->LabelAutoFitStyle =
-        static_cast<System::Windows::Forms::DataVisualization::Charting::
-                        LabelAutoFitStyles>(
-            ((((((System::Windows::Forms::DataVisualization::Charting::
-                      LabelAutoFitStyles::IncreaseFont |
-                  System::Windows::Forms::DataVisualization::Charting::
-                      LabelAutoFitStyles::DecreaseFont) |
-                 System::Windows::Forms::DataVisualization::Charting::
-                     LabelAutoFitStyles::StaggeredLabels) |
-                System::Windows::Forms::DataVisualization::Charting::
-                    LabelAutoFitStyles::LabelsAngleStep30) |
-               System::Windows::Forms::DataVisualization::Charting::
-                   LabelAutoFitStyles::LabelsAngleStep45) |
-              System::Windows::Forms::DataVisualization::Charting::
-                  LabelAutoFitStyles::LabelsAngleStep90) |
-             System::Windows::Forms::DataVisualization::Charting::
-                 LabelAutoFitStyles::WordWrap));
-    chartArea1->AxisY->LabelStyle->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 18, System::Drawing::FontStyle::Bold,
-        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    chartArea1->AxisY->LabelStyle->IntervalOffsetType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisY->LabelStyle->IntervalType = System::Windows::Forms::
-        DataVisualization::Charting::DateTimeIntervalType::Number;
-    chartArea1->AxisY->LineWidth = 3;
-    chartArea1->AxisY->MajorGrid->LineColor = System::Drawing::Color::Lime;
-    chartArea1->AxisY->Maximum = 100;
-    chartArea1->AxisY->Minimum = 0;
-    chartArea1->AxisY->MinorGrid->Enabled = true;
-    chartArea1->AxisY->MinorGrid->Interval = 25;
-    chartArea1->AxisY->MinorGrid->LineColor = System::Drawing::Color::Crimson;
-    chartArea1->AxisY->MinorGrid->LineWidth = 4;
-    chartArea1->AxisY->Title = L"PERCENT OF SOLVED";
+    chartArea1->AxisY->LabelStyle->Font =
+        (gcnew System::Drawing::Font(L"Yu Gothic", 7.92F));
+    chartArea1->AxisY->Maximum = 1.8;
+    chartArea1->AxisY->Minimum = -2.2;
+    chartArea1->AxisY->Title = L"x2";
     chartArea1->AxisY->TitleFont = (gcnew System::Drawing::Font(
-        L"MS Gothic", 18, System::Drawing::FontStyle::Bold,
+        L"Yu Gothic UI", 11.25F, System::Drawing::FontStyle::Bold,
         System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    chartArea1->BackColor = System::Drawing::Color::DimGray;
+    chartArea1->BackColor = System::Drawing::Color::FloralWhite;
+    chartArea1->BackGradientStyle = System::Windows::Forms::DataVisualization::
+        Charting::GradientStyle::Center;
+    chartArea1->BackSecondaryColor = System::Drawing::Color::AliceBlue;
+    chartArea1->InnerPlotPosition->Auto = false;
+    chartArea1->InnerPlotPosition->Height = 93;
+    chartArea1->InnerPlotPosition->Width = 93;
+    chartArea1->InnerPlotPosition->X = 3.61F;
+    chartArea1->InnerPlotPosition->Y = 1;
+    chartArea1->IsSameFontSizeForAllAxes = true;
     chartArea1->Name = L"ChartArea1";
-    this->chart1->ChartAreas->Add(chartArea1);
-    legend1->BackColor = System::Drawing::Color::SlateGray;
+    this->chart2->ChartAreas->Add(chartArea1);
+    legend1->BackColor = System::Drawing::Color::Transparent;
+    legend1->BackGradientStyle = System::Windows::Forms::DataVisualization::
+        Charting::GradientStyle::Center;
+    legend1->BackSecondaryColor = System::Drawing::SystemColors::ActiveCaption;
+    legend1->BorderColor = System::Drawing::Color::Transparent;
     legend1->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 18, System::Drawing::FontStyle::Bold,
+        L"Yu Gothic UI", 11.25F, System::Drawing::FontStyle::Bold,
         System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    legend1->ForeColor = System::Drawing::SystemColors::ActiveCaptionText;
+    legend1->HeaderSeparator = System::Windows::Forms::DataVisualization::
+        Charting::LegendSeparatorStyle::ThickGradientLine;
+    legend1->HeaderSeparatorColor = System::Drawing::Color::IndianRed;
     legend1->IsTextAutoFit = false;
+    legend1->ItemColumnSeparator = System::Windows::Forms::DataVisualization::
+        Charting::LegendSeparatorStyle::ThickGradientLine;
+    legend1->ItemColumnSeparatorColor = System::Drawing::Color::IndianRed;
     legend1->Name = L"Legend1";
-    this->chart1->Legends->Add(legend1);
-    this->chart1->Location = System::Drawing::Point(12, 12);
-    this->chart1->Name = L"chart1";
-    series1->BorderWidth = 3;
+    legend1->TableStyle = System::Windows::Forms::DataVisualization::Charting::
+        LegendTableStyle::Tall;
+    this->chart2->Legends->Add(legend1);
+    this->chart2->Location = System::Drawing::Point(12, 14);
+    this->chart2->Name = L"chart2";
+    series1->BorderWidth = 2;
     series1->ChartArea = L"ChartArea1";
     series1->ChartType = System::Windows::Forms::DataVisualization::Charting::
-        SeriesChartType::Line;
-    series1->Color = System::Drawing::Color::Red;
-    series1->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 8.25F, System::Drawing::FontStyle::Regular,
-        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+        SeriesChartType::FastPoint;
+    series1->Color = System::Drawing::Color::Blue;
     series1->Legend = L"Legend1";
-    series1->MarkerSize = 6;
     series1->MarkerStyle = System::Windows::Forms::DataVisualization::Charting::
-        MarkerStyle::Square;
-    series1->Name = L"AGP - 2D";
-    series2->BorderWidth = 3;
+        MarkerStyle::Circle;
+    series1->Name = L"Точки данных";
+    series2->BorderWidth = 2;
     series2->ChartArea = L"ChartArea1";
     series2->ChartType = System::Windows::Forms::DataVisualization::Charting::
-        SeriesChartType::Line;
-    series2->Color = System::Drawing::Color::Blue;
-    series2->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 8.25F, System::Drawing::FontStyle::Regular,
-        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+        SeriesChartType::FastPoint;
+    series2->Color = System::Drawing::Color::Red;
     series2->Legend = L"Legend1";
-    series2->MarkerSize = 6;
     series2->MarkerStyle = System::Windows::Forms::DataVisualization::Charting::
         MarkerStyle::Circle;
-    series2->Name = L"AGP(LNA) - 2D";
-    series3->BorderWidth = 3;
-    series3->ChartArea = L"ChartArea1";
-    series3->ChartType = System::Windows::Forms::DataVisualization::Charting::
-        SeriesChartType::Line;
-    series3->Color = System::Drawing::Color::Fuchsia;
-    series3->Legend = L"Legend1";
-    series3->MarkerSize = 6;
-    series3->MarkerStyle = System::Windows::Forms::DataVisualization::Charting::
-        MarkerStyle::Diamond;
-    series3->Name = L"AGP";
-    series4->BorderWidth = 3;
-    series4->ChartArea = L"ChartArea1";
-    series4->ChartType = System::Windows::Forms::DataVisualization::Charting::
-        SeriesChartType::Line;
-    series4->Color = System::Drawing::Color::Gold;
-    series4->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8));
-    series4->Legend = L"Legend1";
-    series4->MarkerSize = 6;
-    series4->MarkerStyle = System::Windows::Forms::DataVisualization::Charting::
-        MarkerStyle::Triangle;
-    series4->Name = L"AGP(LNA)";
-    this->chart1->Series->Add(series1);
-    this->chart1->Series->Add(series2);
-    this->chart1->Series->Add(series3);
-    this->chart1->Series->Add(series4);
-    this->chart1->Size = System::Drawing::Size(2405, 796);
-    this->chart1->TabIndex = 1;
-    this->chart1->Text = L"chart1";
-    title1->BackImageAlignment = System::Windows::Forms::DataVisualization::
-        Charting::ChartImageAlignmentStyle::Center;
-    title1->Font = (gcnew System::Drawing::Font(
-        L"MS Gothic", 18,
+    series2->Name = L"Точки данных LNA";
+    this->chart2->Series->Add(series1);
+    this->chart2->Series->Add(series2);
+    this->chart2->Size = System::Drawing::Size(1160, 785);
+    this->chart2->TabIndex = 5;
+    this->chart2->Text = L"chart2";
+    //
+    // label2
+    //
+    this->label2->AutoSize = true;
+    this->label2->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label2->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label2->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label2->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label2->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
         static_cast<System::Drawing::FontStyle>(
-            (System::Drawing::FontStyle::Bold |
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
              System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label2->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label2->Location = System::Drawing::Point(946, 622);
+    this->label2->Name = L"label2";
+    this->label2->Size = System::Drawing::Size(40, 23);
+    this->label2->TabIndex = 8;
+    this->label2->Text = L"Extr";
+    //
+    // textBox1
+    //
+    this->textBox1->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox1->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox1->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
         System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-    title1->Name = L"Title1";
-    title1->Text = L"OPERATING CHARACTERISTICS OF THE AGP";
-    this->chart1->Titles->Add(title1);
+    this->textBox1->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox1->Location = System::Drawing::Point(992, 654);
+    this->textBox1->Name = L"textBox1";
+    this->textBox1->Size = System::Drawing::Size(180, 29);
+    this->textBox1->TabIndex = 13;
+    //
+    // textBox3
+    //
+    this->textBox3->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox3->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox3->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox3->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox3->Location = System::Drawing::Point(992, 584);
+    this->textBox3->Name = L"textBox3";
+    this->textBox3->Size = System::Drawing::Size(180, 29);
+    this->textBox3->TabIndex = 14;
+    //
+    // textBox4
+    //
+    this->textBox4->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox4->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox4->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox4->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox4->Location = System::Drawing::Point(992, 549);
+    this->textBox4->Name = L"textBox4";
+    this->textBox4->Size = System::Drawing::Size(180, 29);
+    this->textBox4->TabIndex = 15;
+    //
+    // textBox5
+    //
+    this->textBox5->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox5->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox5->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox5->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox5->Location = System::Drawing::Point(992, 514);
+    this->textBox5->Name = L"textBox5";
+    this->textBox5->Size = System::Drawing::Size(180, 29);
+    this->textBox5->TabIndex = 16;
+    //
+    // textBox6
+    //
+    this->textBox6->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox6->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox6->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox6->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox6->Location = System::Drawing::Point(992, 479);
+    this->textBox6->Name = L"textBox6";
+    this->textBox6->Size = System::Drawing::Size(180, 29);
+    this->textBox6->TabIndex = 17;
+    //
+    // label6
+    //
+    this->label6->AutoSize = true;
+    this->label6->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label6->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label6->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label6->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label6->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label6->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label6->Location = System::Drawing::Point(911, 657);
+    this->label6->Name = L"label6";
+    this->label6->Size = System::Drawing::Size(75, 23);
+    this->label6->TabIndex = 18;
+    this->label6->Text = L"Extr LNA";
+    //
+    // label7
+    //
+    this->label7->AutoSize = true;
+    this->label7->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label7->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label7->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label7->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label7->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label7->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label7->Location = System::Drawing::Point(957, 587);
+    this->label7->Name = L"label7";
+    this->label7->Size = System::Drawing::Size(29, 23);
+    this->label7->TabIndex = 19;
+    this->label7->Text = L"x2";
+    //
+    // label8
+    //
+    this->label8->AutoSize = true;
+    this->label8->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label8->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label8->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label8->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label8->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label8->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label8->Location = System::Drawing::Point(960, 552);
+    this->label8->Name = L"label8";
+    this->label8->Size = System::Drawing::Size(26, 23);
+    this->label8->TabIndex = 20;
+    this->label8->Text = L"x1";
+    //
+    // label9
+    //
+    this->label9->AutoSize = true;
+    this->label9->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label9->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label9->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label9->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label9->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label9->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label9->Location = System::Drawing::Point(885, 517);
+    this->label9->Name = L"label9";
+    this->label9->Size = System::Drawing::Size(101, 23);
+    this->label9->TabIndex = 21;
+    this->label9->Text = L"solving time";
+    //
+    // label10
+    //
+    this->label10->AutoSize = true;
+    this->label10->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label10->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label10->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label10->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label10->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label10->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label10->Location = System::Drawing::Point(903, 482);
+    this->label10->Name = L"label10";
+    this->label10->Size = System::Drawing::Size(83, 23);
+    this->label10->TabIndex = 22;
+    this->label10->Text = L"iter count";
+    //
+    // label1
+    //
+    this->label1->AutoSize = true;
+    this->label1->BackColor = System::Drawing::SystemColors::InactiveCaption;
+    this->label1->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+    this->label1->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->label1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+    this->label1->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12,
+        static_cast<System::Drawing::FontStyle>(
+            ((System::Drawing::FontStyle::Bold |
+              System::Drawing::FontStyle::Italic) |
+             System::Drawing::FontStyle::Underline)),
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204),
+        true));
+    this->label1->ForeColor = System::Drawing::Color::DarkBlue;
+    this->label1->Location = System::Drawing::Point(911, 692);
+    this->label1->Name = L"label1";
+    this->label1->Size = System::Drawing::Size(75, 23);
+    this->label1->TabIndex = 24;
+    this->label1->Text = L"accuracy";
+    //
+    // textBox7
+    //
+    this->textBox7->BackColor =
+        System::Drawing::SystemColors::ControlLightLight;
+    this->textBox7->Cursor = System::Windows::Forms::Cursors::Hand;
+    this->textBox7->Font = (gcnew System::Drawing::Font(
+        L"Yu Gothic UI", 12, System::Drawing::FontStyle::Bold,
+        System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+    this->textBox7->ForeColor = System::Drawing::Color::FromArgb(
+        static_cast<System::Int32>(static_cast<System::Byte>(64)),
+        static_cast<System::Int32>(static_cast<System::Byte>(0)),
+        static_cast<System::Int32>(static_cast<System::Byte>(64)));
+    this->textBox7->Location = System::Drawing::Point(992, 689);
+    this->textBox7->Name = L"textBox7";
+    this->textBox7->Size = System::Drawing::Size(180, 29);
+    this->textBox7->TabIndex = 23;
+    //
+    // MyForm
+    //
     this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
     this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-    this->ClientSize = System::Drawing::Size(2429, 820);
-    this->Controls->Add(this->chart1);
+    this->ClientSize = System::Drawing::Size(1184, 811);
+    this->Controls->Add(this->label1);
+    this->Controls->Add(this->textBox7);
+    this->Controls->Add(this->label10);
+    this->Controls->Add(this->label9);
+    this->Controls->Add(this->label8);
+    this->Controls->Add(this->label7);
+    this->Controls->Add(this->label6);
+    this->Controls->Add(this->textBox6);
+    this->Controls->Add(this->textBox5);
+    this->Controls->Add(this->textBox4);
+    this->Controls->Add(this->textBox3);
+    this->Controls->Add(this->textBox1);
+    this->Controls->Add(this->label2);
+    this->Controls->Add(this->textBox2);
+    this->Controls->Add(this->button1);
+    this->Controls->Add(this->chart2);
     this->Name = L"MyForm";
     this->Text = L"MyForm";
-    this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
-    (cli::safe_cast<System::ComponentModel::ISupportInitialize ^>(this->chart1))
+    (cli::safe_cast<System::ComponentModel::ISupportInitialize ^>(this->chart2))
         ->EndInit();
     this->ResumeLayout(false);
+    this->PerformLayout();
   }
 #pragma endregion
-private:
-  PeanoCurve_2D ^ Curve = gcnew PeanoCurve_2D(11, List::Top, 0, 1, 0, 1);
-  PeanoCurve_2D ^ Curve_Minus_PI_Na_Dva =
-      gcnew PeanoCurve_2D(11, List::Right, 0, 1, 0, 1);
-  cli::array<unsigned short> ^ procent_correct_2D =
-      gcnew cli::array<unsigned short>(3001);
-  cli::array<unsigned short> ^ procent_correct_LNA_2D =
-      gcnew cli::array<unsigned short>(3001);
-  cli::array<unsigned short> ^ procent_correct =
-      gcnew cli::array<unsigned short>(3001);
-  cli::array<unsigned short> ^ procent_correct_LNA =
-      gcnew cli::array<unsigned short>(3001);
-  cli::array<cliext::deque<double> ^> ^ Extr_2D =
-      gcnew cli::array<cliext::deque<double> ^>(1000);
-  cli::array<cliext::deque<double> ^> ^ Extr_LNA_2D =
-      gcnew cli::array<cliext::deque<double> ^>(1000);
-  cli::array<cliext::deque<double> ^> ^ Extr =
-      gcnew cli::array<cliext::deque<double> ^>(1000);
-  cli::array<cliext::deque<double> ^> ^ Extr_LNA =
-      gcnew cli::array<cliext::deque<double> ^>(1000);
-  System::Void MyForm_Load(System::Object ^ sender, System::EventArgs ^ e) {
-    unsigned short num = 0, MIN_LNA_SIZE = 3000, MIN_LNA_SIZE_2D = 3000;
-    while (num < 1000) {
-      time_t now = std::chrono::duration_cast<std::chrono::seconds>(
+ private:
+  PeanoCurve_2D ^ Curve =
+      gcnew PeanoCurve_2D(11, List::Top, -2.2, 1.8, -2.2, 1.8);
+  PeanoCurve_2D ^ Inverted_Curve =
+      gcnew PeanoCurve_2D(11, List::Dawn, -2.2, 1.8, -2.2, 1.8);
+  System::Void button1_Click(System::Object ^ sender, System::EventArgs ^ e) {
+    chart2->Series[0]->Points->Clear();
+    time_t start = std::chrono::duration_cast<std::chrono::nanoseconds>(
                        std::chrono::system_clock::now().time_since_epoch())
                        .count();
-      HINSTANCE load_function = LoadLibrary(L"TEST_FUNC.dll");
-      typedef double (*grsh)(double, double, time_t);
-      grsh GrishaginFunc = (grsh)GetProcAddress(load_function, "GrishaginFunc");
-      typedef double (*sh)(double, time_t);
-      sh ShekelFunc = (sh)GetProcAddress(load_function, "ShekelFunc");
-      unsigned short i = 0, j;
-      double MIN_GRSH = 0, MIN_SH = 0;
-      while (i < 256) {
-        j = 0;
-        while (j < 256) {
-          if (GrishaginFunc(ldexp(1, -9) + ldexp(1, -8) * i,
-                            ldexp(1, -9) + ldexp(1, -8) * (j += 1),
-                            now) < MIN_GRSH) {
-            MIN_GRSH = GrishaginFunc(ldexp(1, -9) + ldexp(1, -8) * i,
-                                     ldexp(1, -9) + ldexp(1, -8) * j, now);
-          }
-        }
-        i++;
-      }
-      i = 2000;
-      while (i > 0) {
-        if (ShekelFunc((i -= 1) * 0.005, now) < MIN_SH) {
-          MIN_SH = ShekelFunc(i * 0.005, now);
-        }
-      }
-      FreeLibrary(load_function);
-      Extr_2D[num] = gcnew cliext::deque<double>(
-          Base_LNA_1_2_Mer_AGP(now, false, 2, 1, Curve, Curve_Minus_PI_Na_Dva,
-                               5, 5 * pow(10, -15), -1, 0, 0, 1));
-      Extr_LNA_2D[num] = gcnew cliext::deque<double>(
-          Base_LNA_1_2_Mer_AGP(now, true, 2, 1, Curve, Curve_Minus_PI_Na_Dva, 3,
-                               5 * pow(10, -15), 198, 0, 0, 1));
-      Extr[num] = gcnew cliext::deque<double>(
-          Base_LNA_1_2_Mer_AGP(now, false, 1, 10, nullptr, nullptr, 3,
-                               5 * pow(10, -15), -1, 0, 0, 1));
-      Extr_LNA[num] = gcnew cliext::deque<double>(
-          Base_LNA_1_2_Mer_AGP(now, true, 1, 10, nullptr, nullptr, 3,
-                               5 * pow(10, -15), 38, 0, 0, 1));
-      if (Extr_LNA[num]->size() < MIN_LNA_SIZE) {
-        MIN_LNA_SIZE = Extr_LNA[num]->size();
-      }
-      if (Extr_LNA_2D[num]->size() < MIN_LNA_SIZE_2D) {
-        MIN_LNA_SIZE_2D = Extr_LNA_2D[num]->size();
-      }
-      while (Extr_2D[num]->empty() == false) {
-        if (Extr_2D[num]->front() < MIN_GRSH ||
-            Extr_2D[num]->front() - MIN_GRSH < 0.01) {
-          procent_correct_2D[i]++;
-        }
-        if (num == 999) {
-          chart1->Series[0]->Points->AddXY(i, procent_correct_2D[i] * 0.1);
-        }
-        Extr_2D[num]->pop_front();
-        if (Extr[num]->empty() == false) {
-          if (Extr[num]->front() < MIN_SH ||
-              Extr[num]->front() - MIN_SH < 0.001) {
-            procent_correct[i]++;
-          }
-          if (num == 999) {
-            chart1->Series[2]->Points->AddXY(i, procent_correct[i] * 0.1);
-          }
-          Extr[num]->pop_front();
-        }
-        if (Extr_LNA_2D[num]->empty() == false) {
-          if (Extr_LNA_2D[num]->front() < MIN_GRSH ||
-              Extr_LNA_2D[num]->front() - MIN_GRSH < 0.01) {
-            procent_correct_LNA_2D[i]++;
-          }
-          if (num == 999) {
-            if (i < MIN_LNA_SIZE_2D) {
-              chart1->Series[1]->Points->AddXY(i,
-                                               procent_correct_LNA_2D[i] * 0.1);
-            }
-          }
-          Extr_LNA_2D[num]->pop_front();
-        }
-        if (Extr_LNA[num]->empty() == false) {
-          if (Extr_LNA[num]->front() < MIN_SH ||
-              Extr_LNA[num]->front() - MIN_SH < 0.001) {
-            procent_correct_LNA[i]++;
-          }
-          if (num == 999) {
-            if (i < MIN_LNA_SIZE) {
-              chart1->Series[3]->Points->AddXY(i, procent_correct_LNA[i] * 0.1);
-            }
-          }
-          Extr_LNA[num]->pop_front();
-        }
-        i++;
-      }
-      num++;
-    }
+    cliext::deque<double> Extr_2D =
+        Base_LNA_1_2_Mer_AGP(start, false, 2, 1.8, Curve, Inverted_Curve, 2.5,
+                             0.00001, 10000, -1, -2.2, -2.2, 1.8);
+    time_t end = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                     std::chrono::system_clock::now().time_since_epoch())
+                     .count();
+    textBox5->Text =
+        Convert::ToString((end - start) / 1'000'000'000.0) + " seconds";
+    textBox2->Text = Convert::ToString(Extr_2D.back());
   }
 };
-} // namespace TESTAGP
+}  // namespace TESTAGP
